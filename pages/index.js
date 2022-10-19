@@ -3,7 +3,7 @@ import Product from "../components/Product";
 export default function Home({ products }) {
   return (
     <>
-      <div class="my-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="my-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
           <Product key={index} product={product} />
         ))}
