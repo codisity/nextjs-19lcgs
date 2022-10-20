@@ -1,4 +1,5 @@
 import Product from "../components/Product";
+import { GraphQLClient } from "graphql-request";
 
 export default function Home({ products }) {
   return (
@@ -12,9 +13,22 @@ export default function Home({ products }) {
   );
 }
 
-export async function getServerSideProps(context) {
-  const res = await fetch(`https://fakestoreapi.com/products/`);
-  const products = await res.json();
+export async function getStaticProps(context) {
+  const hygraph = new GraphQLClient(
+    "https://api-eu-central-1-shared-euc1-02.hygraph.com/v2/cl9h8c4dy07c401uhbm7r8lbm/master"
+  );
+
+  const { products } = await hygraph.request(
+    `
+      query getProducts {
+        products {
+          name
+          price
+          slug
+        }
+      }
+    `
+  );
 
   return {
     props: { products }, // will be passed to the page component as props

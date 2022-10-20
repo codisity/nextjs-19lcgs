@@ -1,14 +1,14 @@
-export default function Product({ product: { title, price, image } }) {
+export default function Product({ product: { name, price, image } }) {
   return (
     <>
       <div className="bg-gray-100 rounded-md overflow-hidden p-4 group">
         <div className="w-full aspect-square overflow-hidden rounded-sm flex justify-center items-center bg-white">
-          <img src={image} alt={title} />
+          <img src={image} alt={name} />
         </div>
 
         <div className="mt-4">
           <p className="whitespace-nowrap text-ellipsis overflow-hidden text-lg font-semibold">
-            {title}
+            {name}
           </p>
 
           <div className="flex justify-between mt-2">
