@@ -1,9 +1,9 @@
-export default function Product({ product: { name, price, image } }) {
+export default function Product({ product: { name, price, imageUrl } }) {
   return (
     <>
       <div className="bg-gray-100 rounded-md overflow-hidden p-4 group">
         <div className="w-full aspect-square overflow-hidden rounded-sm flex justify-center items-center bg-white">
-          <img src={image} alt={name} />
+          <img src={imageUrl} alt={name} />
         </div>
 
         <div className="mt-4">

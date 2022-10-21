@@ -1,5 +1,5 @@
 import Product from "../components/Product";
-import { GraphQLClient } from "graphql-request";
+import hygraphClient from "../libs/hygraphClient";
 
 export default function Home({ products }) {
   return (
@@ -14,14 +14,11 @@ export default function Home({ products }) {
 }
 
 export async function getStaticProps(context) {
-  const hygraph = new GraphQLClient(
-    "https://api-eu-central-1-shared-euc1-02.hygraph.com/v2/cl9h8c4dy07c401uhbm7r8lbm/master"
-  );
-
-  const { products } = await hygraph.request(
+  const { products } = await hygraphClient.request(
     `
       query getProducts {
         products {
+          imageUrl
           name
           price
           slug
