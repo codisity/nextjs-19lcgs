@@ -23,6 +23,13 @@ export default function Navbar() {
         id="navigation-menu"
       >
         <li>
+          <Link href="/login">
+            <a className="hover:bg-gray-200 rounded-md inline-flex py-3 px-4">
+              Logowanie/Rejestracja
+            </a>
+          </Link>
+        </li>
+        <li>
           <Link href="/koszyk">
             <a className="hover:bg-gray-200 rounded-md inline-flex py-3 px-4">
               Koszyk
