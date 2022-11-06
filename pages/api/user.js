@@ -6,7 +6,7 @@ hygraphClient.setHeader(
   `Bearer ${process.env.HYGRAPH_API_TOKEN}`
 );
 
-function createClient(req, res) {
+async function createClient(req, res) {
   const email = req.body.email.trim();
   const emailRegExp = /.+@.+\..+/;
   if (!emailRegExp.test(email)) {
