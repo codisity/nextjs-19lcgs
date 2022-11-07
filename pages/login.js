@@ -1,4 +1,4 @@
-export default function CartPage() {
+export default function LoginPage() {
   return (
     <>
       <form action="/api/user" method="POST">

@@ -7,7 +7,20 @@ hygraphClient.setHeader(
   "authorization",
   `Bearer ${process.env.HYGRAPH_API_TOKEN}`
 );
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: "1cb7699eb06394",
+    pass: "3f785f032cad08",
+  },
+});
+transporter.use("compile", htmlToText());
+
 const baseUrl = "https://2ieeou-3000.preview.csb.app";
+const emailFrom = '"Fred Foo 👻" <foo@example.com>';
+const sessionCookieName = "loginToken";
 
 async function createClient(req, res) {
   const email = req.body.email.trim();
@@ -33,32 +46,59 @@ async function createClient(req, res) {
       }
     );
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "500 Internal error" });
+    const notUniqueErrorMsg = 'value is not unique for the field "email"';
+    if (error.response.errors[0].message === notUniqueErrorMsg) {
+      const sessionToken = randomBytes(100).toString("hex");
+
+      try {
+        await hygraphClient.request(
+          `
+        mutation CreateSession($email: String!, $token: String!) {
+          createSession(data: {token: $token, client: {connect: {email: $email}}}) {
+            id
+          }
+        }
+      `,
+          {
+            email,
+            token: sessionToken,
+          }
+        );
+
+        await transporter.sendMail({
+          from: emailFrom,
+          to: email,
+          subject: "Logowanie",
+          html: `<a href="${baseUrl}/api/activate-session?token=${sessionToken}">Potwierdź logowanie</a>`,
+        });
+
+        return res.status(200).json({ success: "User logging in initiated" });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "500 Internal error" });
+      }
+    } else {
+      throw error;
+    }
   }
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-      user: "1cb7699eb06394",
-      pass: "3f785f032cad08",
-    },
-  });
-  transporter.use("compile", htmlToText());
-
   await transporter.sendMail({
-    from: '"Fred Foo 👻" <foo@example.com>', // sender address
-    to: "bar@example.com, baz@example.com", // list of receivers
-    subject: "Aktywacja konta", // Subject line
-    html: `<a href="${baseUrl}/api/activate-user?token=${confirmToken}">Aktywuj konto</a>`, // html body
+    from: emailFrom,
+    to: email,
+    subject: "Aktywacja konta",
+    html: `<a href="${baseUrl}/api/activate-user?token=${confirmToken}">Aktywuj konto</a>`,
   });
 }
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    await createClient(req, res);
+    try {
+      await createClient(req, res);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: "500 Internal error" });
+    }
   }
 
-  res.status(200).json({ success: "User created" });
+  return res.status(200).json({ success: "User created" });
 }
