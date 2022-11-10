@@ -1,13 +1,19 @@
-import { createClient, createSession } from "../../libs/hygraphClient";
+import {
+  createClient,
+  createSession,
+  publishClient,
+} from "../../libs/hygraphClient";
 import { randomBytes } from "node:crypto";
 import { baseUrl, emailFrom } from "../../config";
 import { sendEmail } from "../../libs/email";
+import { responseStatus } from "../../lang";
+import { setSessionCookie } from "../../libs/cookies";
 
 async function initializeClientCreation(req, res) {
   const email = req.body.email.trim();
   const emailRegExp = /.+@.+\..+/;
   if (!emailRegExp.test(email)) {
-    res.status(400).json({ error: "Invalid email address" });
+    res.status(400).json({ error: responseStatus.invalidEmail });
   }
 
   const confirmToken = randomBytes(100).toString("hex");
@@ -29,10 +35,12 @@ async function initializeClientCreation(req, res) {
           from: emailFrom,
           to: email,
           subject: "Logowanie",
-          html: `<a href="${baseUrl}/api/activate-session?token=${sessionToken}">Potwierdź logowanie</a>`,
+          html: `<a href="${baseUrl}/potwierdzenie-logowania?token=${sessionToken}">Potwierdź logowanie</a>`,
         });
 
-        return res.status(200).json({ success: "User logging in initiated" });
+        return res
+          .status(200)
+          .json({ success: responseStatus.userLoggingInit });
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "500 Internal error" });
@@ -46,19 +54,52 @@ async function initializeClientCreation(req, res) {
     from: emailFrom,
     to: email,
     subject: "Aktywacja konta",
-    html: `<a href="${baseUrl}/api/activate-user?token=${confirmToken}">Aktywuj konto</a>`,
+    html: `<a href="${baseUrl}/aktywacja-uzytkownika?token=${confirmToken}">Aktywuj konto</a>`,
   });
 }
 
 export default async function handler(req, res) {
-  if (req.method === "POST") {
-    try {
-      await initializeClientCreation(req, res);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "500 Internal error" });
+  switch (req.method) {
+    case "POST": {
+      try {
+        await initializeClientCreation(req, res);
+        return res.status(200).json({ success: responseStatus.userCreated });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "500 Internal error" });
+      }
+    }
+    case "PATCH": {
+      const { token } = req.body;
+      let client;
+
+      try {
+        const data = await publishClient(token);
+        client = data.publishClient;
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "500 Internal error" });
+      }
+
+      const sessionToken = randomBytes(100).toString("hex");
+      setSessionCookie({ req, res, sessionToken });
+
+      try {
+        await createSession({
+          email: client.email,
+          token: sessionToken,
+        });
+
+        return res
+          .status(200)
+          .json({ success: "User activated and logged in" });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "500 Internal error" });
+      }
+    }
+    default: {
+      return res.status(405).json({ error: "405 Method Not Allowed" });
     }
   }
-
-  return res.status(200).json({ success: "User created" });
 }

@@ -23,7 +23,7 @@ export default function Navbar() {
         id="navigation-menu"
       >
         <li>
-          <Link href="/login">
+          <Link href="/logowanie">
             <a className="hover:bg-gray-200 rounded-md inline-flex py-3 px-4">
               Logowanie/Rejestracja
             </a>
