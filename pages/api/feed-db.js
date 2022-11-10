@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import slugify from "slugify";
-import hygraphClient from "../../libs/hygraphClient";
+import { createProduct } from "../../libs/hygraphClient";
 
 export default async function handler(req, res) {
   if (process.env.NODE_ENV !== "development") {
@@ -24,23 +24,5 @@ async function createFakeProduct() {
     price: parseFloat(faker.commerce.price()),
   };
 
-  hygraphClient.setHeader(
-    "authorization",
-    `Bearer ${process.env.HYGRAPH_API_TOKEN}`
-  );
-  await hygraphClient.request(
-    `
-      mutation createProduct($imageUrl: String, $name: String!, $slug: String!, $price: Float!) {
-        createProduct(
-          data: {imageUrl: $imageUrl, name: $name, slug: $slug, price: $price}
-        ) {
-          id
-        }
-        publishProduct(where: {slug: $slug}) {
-          id
-        }
-      }    
-    `,
-    product
-  );
+  await createProduct(product);
 }

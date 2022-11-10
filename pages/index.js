@@ -1,5 +1,5 @@
 import Product from "../components/Product";
-import hygraphClient from "../libs/hygraphClient";
+import { getProducts } from "../libs/hygraphClient";
 
 export default function Home({ products }) {
   return (
@@ -13,21 +13,10 @@ export default function Home({ products }) {
   );
 }
 
-export async function getStaticProps(context) {
-  const { products } = await hygraphClient.request(
-    `
-      query getProducts {
-        products {
-          imageUrl
-          name
-          price
-          slug
-        }
-      }
-    `
-  );
+export async function getStaticProps() {
+  const products = await getProducts();
 
   return {
-    props: { products }, // will be passed to the page component as props
+    props: { products },
   };
 }
