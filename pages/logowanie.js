@@ -1,8 +1,10 @@
 import axios from "axios";
 import { useState } from "react";
 import { langPl, responseStatus } from "../lang";
+import { getSessionCookie } from "../libs/cookies";
+import { getClientBySession } from "../libs/hygraphClient";
 
-export default function LoginPage() {
+export default function LoginPage({ user }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -28,6 +30,10 @@ export default function LoginPage() {
 
       console.error(error);
     }
+  }
+
+  if (user) {
+    return <>{langPl.alreadyLoggedIn}</>;
   }
 
   if (success) {
@@ -63,5 +69,29 @@ export default function LoginPage() {
         </form>
       </>
     );
+  }
+}
+
+export async function getServerSideProps({ req, res }) {
+  const sessionToken = getSessionCookie({ req, res });
+
+  try {
+    const user = await getClientBySession(sessionToken);
+
+    if (user) {
+      return {
+        props: { user },
+      };
+    } else {
+      return {
+        props: {},
+      };
+    }
+  } catch (error) {
+    console.error(error);
+
+    return {
+      props: {},
+    };
   }
 }

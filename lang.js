@@ -1,6 +1,7 @@
 export const langPl = {
   invalidEmail: "Nieprawidłowy adres email",
   checkEmail: "Sprawdź swoją skrzynkę emailową",
+  alreadyLoggedIn: "Jesteś już zalogowany",
 };
 
 export const responseStatus = {

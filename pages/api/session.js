@@ -1,5 +1,5 @@
-import { publishSession } from "../../libs/hygraphClient";
-import { setSessionCookie } from "../../libs/cookies";
+import { getClientBySession, publishSession } from "../../libs/hygraphClient";
+import { getSessionCookie, setSessionCookie } from "../../libs/cookies";
 import { responseStatus } from "../../lang";
 
 export default async function handler(req, res) {
@@ -15,6 +15,23 @@ export default async function handler(req, res) {
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "500 Internal error" });
+      }
+    }
+    case "GET": {
+      const sessionToken = getSessionCookie({ req, res });
+
+      try {
+        const user = await getClientBySession(sessionToken);
+
+        if (user) {
+          return res.status(200).json({ success: responseStatus.userLoggedIn });
+        } else {
+          return res.status(500).json({ error: "400 Not logged in" });
+        }
+      } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({ error: "400 Not logged in" });
       }
     }
     default: {

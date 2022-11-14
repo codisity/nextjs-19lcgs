@@ -1,4 +1,4 @@
-import { setCookie } from "cookies-next";
+import { getCookie, setCookie } from "cookies-next";
 import { sessionCookieName } from "../config";
 
 const secondsIn7days = 60 * 60 * 24 * 7;
@@ -9,4 +9,8 @@ export function setSessionCookie({ req, res, sessionToken }) {
     res,
     maxAge: secondsIn7days,
   });
+}
+
+export function getSessionCookie({ req, res }) {
+  return getCookie(sessionCookieName, { req, res });
 }

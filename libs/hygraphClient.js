@@ -116,4 +116,25 @@ export async function createClient({ email, confirmToken }) {
   );
 }
 
+export async function getClientBySession(sessionToken) {
+  const {
+    session: { client },
+  } = await hygraphClient.request(
+    `
+      query GetClientBySession($token: String!) {
+        session(where: {token: $token}) {
+          client {
+            email
+          }
+        }
+      }
+    `,
+    {
+      token: sessionToken,
+    }
+  );
+
+  return client;
+}
+
 export default hygraphClient;
