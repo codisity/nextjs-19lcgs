@@ -11,8 +11,11 @@ export default function AktywacjaUzytkownika() {
       const apiEndpointUrl = "/api/session";
 
       if (token) {
-        const response = await axios.patch(apiEndpointUrl, { token });
-        console.log(response);
+        try {
+          await axios.patch(apiEndpointUrl, { token });
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
     publishClient();

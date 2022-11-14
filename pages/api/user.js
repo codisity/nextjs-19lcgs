@@ -20,6 +20,15 @@ async function initializeClientCreation(req, res) {
 
   try {
     await createClient({ email, confirmToken });
+
+    await sendEmail({
+      from: emailFrom,
+      to: email,
+      subject: "Aktywacja konta",
+      html: `<a href="${baseUrl}/aktywacja-uzytkownika?token=${confirmToken}">Aktywuj konto</a>`,
+    });
+
+    return res.status(200).json({ success: responseStatus.userCreated });
   } catch (error) {
     const notUniqueErrorMsg = 'value is not unique for the field "email"';
     if (error.response.errors[0].message === notUniqueErrorMsg) {
@@ -49,13 +58,6 @@ async function initializeClientCreation(req, res) {
       throw error;
     }
   }
-
-  await sendEmail({
-    from: emailFrom,
-    to: email,
-    subject: "Aktywacja konta",
-    html: `<a href="${baseUrl}/aktywacja-uzytkownika?token=${confirmToken}">Aktywuj konto</a>`,
-  });
 }
 
 export default async function handler(req, res) {
@@ -63,28 +65,21 @@ export default async function handler(req, res) {
     case "POST": {
       try {
         await initializeClientCreation(req, res);
-        return res.status(200).json({ success: responseStatus.userCreated });
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "500 Internal error" });
       }
     }
     case "PATCH": {
-      const { token } = req.body;
-      let client;
-
       try {
+        const { token } = req.body;
+
         const data = await publishClient(token);
-        client = data.publishClient;
-      } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "500 Internal error" });
-      }
+        const client = data.publishClient;
 
-      const sessionToken = randomBytes(100).toString("hex");
-      setSessionCookie({ req, res, sessionToken });
+        const sessionToken = randomBytes(100).toString("hex");
+        setSessionCookie({ req, res, sessionToken });
 
-      try {
         await createSession({
           email: client.email,
           token: sessionToken,
@@ -92,7 +87,7 @@ export default async function handler(req, res) {
 
         return res
           .status(200)
-          .json({ success: "User activated and logged in" });
+          .json({ success: responseStatus.userActivatedAndLoggedIn });
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "500 Internal error" });

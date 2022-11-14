@@ -1,5 +1,6 @@
 import { publishSession } from "../../libs/hygraphClient";
 import { setSessionCookie } from "../../libs/cookies";
+import { responseStatus } from "../../lang";
 
 export default async function handler(req, res) {
   switch (req.method) {
@@ -8,9 +9,9 @@ export default async function handler(req, res) {
 
       try {
         await publishSession(token);
-        setSessionCookie({ req, res, token });
+        setSessionCookie({ req, res, sessionToken: token });
 
-        return res.status(200).json({ success: "User logged in" });
+        return res.status(200).json({ success: responseStatus.userLoggedIn });
       } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "500 Internal error" });
