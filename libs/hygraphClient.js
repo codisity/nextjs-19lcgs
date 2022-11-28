@@ -137,4 +137,48 @@ export async function getClientBySession(sessionToken) {
   return client;
 }
 
+export async function addCartItem({ email, slug }) {
+  await hygraphClient.request(
+    `
+      mutation AddCartItem($email: String!, $slug: String!) {
+        createCartItem(
+          data: {client: {connect: {email: $email}}, products: {connect: {slug: $slug}}}
+        ) {
+          id
+        }
+      }
+    `,
+    {
+      email,
+      slug,
+    }
+  );
+}
+
+export async function getCartItems({ email }) {
+  const {
+    client: { cartItems },
+  } = await hygraphClient.request(
+    `
+      query GetCartItems($email: String) {
+        client(where: {email: $email}, stage: DRAFT) {
+          cartItems {
+            products {
+              imageUrl
+              name
+              price
+              slug
+            }
+          }
+        }
+      }
+    `,
+    {
+      email,
+    }
+  );
+
+  return cartItems;
+}
+
 export default hygraphClient;
